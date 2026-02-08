@@ -1,7 +1,7 @@
 # Longstone Foundation — Slices 0 & 1
 
 **Created**: 2026-02-08
-**Status**: Phase 12 Complete (10.5 requires manual NAS deploy)
+**Status**: Phase 13 Complete (10.5 requires manual NAS deploy)
 **Estimated Complexity**: High
 
 ## Objective
@@ -297,18 +297,18 @@ Greenfield repository. Only `PRD.md` (full requirements) and `README.md` exist. 
 
 ### Phase 13: EF Core Configuration + Migration (Slice 1)
 
-- [ ] 13.1 Add entity configurations:
+- [x] 13.1 Add entity configurations:
   - `src/Longstone.Infrastructure/Persistence/Configurations/InstrumentConfiguration.cs` — indexes on Isin, Sedol, Ticker; unique constraint on Isin
   - `src/Longstone.Infrastructure/Persistence/Configurations/FundConfiguration.cs` — index on Name; many-to-many with User for managers
   - `src/Longstone.Infrastructure/Persistence/Configurations/MandateRuleConfiguration.cs` — FK to Fund
   - `src/Longstone.Infrastructure/Persistence/Configurations/FundManagerConfiguration.cs` — join table config
-- [ ] 13.2 Add DbSets to LongstoneDbContext: Instruments, Funds, FundManagers, MandateRules
-- [ ] 13.3 Create migration: `dotnet ef migrations add AddFundsAndInstruments`
-- [ ] 13.4 Implement instrument seed data:
+- [x] 13.2 Add DbSets to LongstoneDbContext: Instruments, Funds, FundManagers, MandateRules
+- [x] 13.3 Create migration: `dotnet ef migrations add AddFundsAndInstruments`
+- [x] 13.4 Implement instrument seed data:
   - `src/Longstone.Infrastructure/Persistence/Seed/InstrumentSeedData.cs`
   - ~50 instruments: top 30 FTSE 100 stocks, 10 major US equities (AAPL, MSFT, AMZN, GOOGL, META, NVDA, TSLA, JPM, V, JNJ), 5 ETFs (VWRL, ISF, CSPX, VUSA, EQQQ), 5 gilts/bonds
   - Each with realistic ISIN, SEDOL, sector, exchange, market cap
-- [ ] 13.5 Verify migration applies and seed runs
+- [x] 13.5 Verify migration applies and seed runs — 339 tests (254 domain + 15 application + 42 infrastructure + 28 integration), all green, 0 warnings
 
 ### Phase 14: MediatR Pipeline + Repository Layer (Slice 1)
 

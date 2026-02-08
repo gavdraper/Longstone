@@ -3,6 +3,7 @@ using System;
 using Longstone.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Longstone.Infrastructure.Migrations
 {
     [DbContext(typeof(LongstoneDbContext))]
-    partial class LongstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260208123814_AddFundsAndInstruments")]
+    partial class AddFundsAndInstruments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.12");
