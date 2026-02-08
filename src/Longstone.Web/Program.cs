@@ -1,6 +1,8 @@
 using FluentValidation;
 using Longstone.Application;
+using Longstone.Domain.Auth;
 using Longstone.Infrastructure;
+using Longstone.Infrastructure.Auth;
 using Longstone.Web.Auth;
 using Longstone.Web.Components;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -31,7 +33,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SameSite = SameSiteMode.Strict;
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in Enum.GetValues<Permission>())
+    {
+        options.AddPolicy($"Permission:{permission}", policy =>
+            policy.Requirements.Add(new PermissionRequirement(permission)));
+    }
+});
 builder.Services.AddCascadingAuthenticationState();
 
 var app = builder.Build();

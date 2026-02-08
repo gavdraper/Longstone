@@ -1,21 +1,79 @@
+@using System.Security.Claims
+@using Longstone.Domain.Auth
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IPermissionService PermissionService
+@inject AuthenticationStateProvider AuthStateProvider
+
 <MudNavMenu>
     <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    <MudNavLink Href="/funds" Icon="@Icons.Material.Filled.AccountBalanceWallet">Funds</MudNavLink>
-    <MudNavLink Href="/instruments" Icon="@Icons.Material.Filled.ShowChart">Instruments</MudNavLink>
-    <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.ShoppingCart" Disabled="true">Orders</MudNavLink>
-    <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.VerifiedUser" Disabled="true">Compliance</MudNavLink>
-    <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.Warning" Disabled="true">Risk</MudNavLink>
+
+    @if (_canViewPortfolios)
+    {
+        <MudNavLink Href="/funds" Icon="@Icons.Material.Filled.AccountBalanceWallet">Funds</MudNavLink>
+        <MudNavLink Href="/instruments" Icon="@Icons.Material.Filled.ShowChart">Instruments</MudNavLink>
+    }
+
+    @if (_canCreateOrders || _canExecuteOrders)
+    {
+        <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.ShoppingCart" Disabled="true">Orders</MudNavLink>
+    }
+
+    @if (_canConfigureCompliance || _canOverrideComplianceBreach)
+    {
+        <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.VerifiedUser" Disabled="true">Compliance</MudNavLink>
+    }
+
+    @if (_canViewRiskDashboards)
+    {
+        <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.Warning" Disabled="true">Risk</MudNavLink>
+    }
+
     <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.Assessment" Disabled="true">Reports</MudNavLink>
 
-    <MudDivider Class="my-2" />
+    @if (_canManageUsers || _canViewAuditLogs)
+    {
+        <MudDivider Class="my-2" />
 
-    <MudNavGroup Title="Admin" Icon="@Icons.Material.Filled.AdminPanelSettings" @bind-Expanded="_adminExpanded">
-        <MudNavLink Href="/admin/users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
-        <MudNavLink Href="/admin/permissions" Icon="@Icons.Material.Filled.Lock">Permissions</MudNavLink>
-        <MudNavLink Href="/admin/audit-log" Icon="@Icons.Material.Filled.History">Audit Log</MudNavLink>
-    </MudNavGroup>
+        <MudNavGroup Title="Admin" Icon="@Icons.Material.Filled.AdminPanelSettings" @bind-Expanded="_adminExpanded">
+            @if (_canManageUsers)
+            {
+                <MudNavLink Href="/admin/users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+                <MudNavLink Href="/admin/permissions" Icon="@Icons.Material.Filled.Lock">Permissions</MudNavLink>
+            }
+            @if (_canViewAuditLogs)
+            {
+                <MudNavLink Href="/admin/audit-log" Icon="@Icons.Material.Filled.History">Audit Log</MudNavLink>
+            }
+        </MudNavGroup>
+    }
 </MudNavMenu>
 
 @code {
     private bool _adminExpanded = true;
+    private bool _canViewPortfolios;
+    private bool _canCreateOrders;
+    private bool _canExecuteOrders;
+    private bool _canConfigureCompliance;
+    private bool _canOverrideComplianceBreach;
+    private bool _canViewRiskDashboards;
+    private bool _canManageUsers;
+    private bool _canViewAuditLogs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
+            return;
+
+        _canViewPortfolios = await PermissionService.HasPermissionAsync(userId, Permission.ViewPortfolios);
+        _canCreateOrders = await PermissionService.HasPermissionAsync(userId, Permission.CreateOrders);
+        _canExecuteOrders = await PermissionService.HasPermissionAsync(userId, Permission.ExecuteOrders);
+        _canConfigureCompliance = await PermissionService.HasPermissionAsync(userId, Permission.ConfigureCompliance);
+        _canOverrideComplianceBreach = await PermissionService.HasPermissionAsync(userId, Permission.OverrideComplianceBreach);
+        _canViewRiskDashboards = await PermissionService.HasPermissionAsync(userId, Permission.ViewRiskDashboards);
+        _canManageUsers = await PermissionService.HasPermissionAsync(userId, Permission.ManageUsers);
+        _canViewAuditLogs = await PermissionService.HasPermissionAsync(userId, Permission.ViewAuditLogs);
+    }
 }

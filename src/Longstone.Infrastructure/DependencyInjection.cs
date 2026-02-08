@@ -2,6 +2,7 @@ using Longstone.Domain.Auth;
 using Longstone.Infrastructure.Auth;
 using Longstone.Infrastructure.Persistence;
 using Longstone.Infrastructure.Persistence.Seed;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,8 @@ public static class DependencyInjection
 
         services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         return services;
     }
