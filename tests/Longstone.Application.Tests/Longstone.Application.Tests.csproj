@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Longstone.Application\Longstone.Application.csproj" />
+    <ProjectReference Include="..\..\src\Longstone.Domain\Longstone.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

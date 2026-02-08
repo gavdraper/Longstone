@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Longstone.ServiceDefaults\Longstone.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Longstone.Application\Longstone.Application.csproj" />
+    <ProjectReference Include="..\Longstone.Infrastructure\Longstone.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="MediatR" Version="14.0.0" />
+    <PackageReference Include="MudBlazor" Version="8.15.0" />
+  </ItemGroup>
+
+</Project>
