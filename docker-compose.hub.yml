@@ -1,0 +1,45 @@
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    hostname: longstone
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container
+      - TS_SERVE_CONFIG=/config/tailscale-serve.json
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+      - ./tailscale-serve.json:/config/tailscale-serve.json:ro
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: always
+
+  longstone:
+    image: longstone:latest
+    network_mode: service:tailscale
+    depends_on:
+      - tailscale
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Longstone=Data Source=/app/data/longstone.db;Cache=Shared
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      - OTEL_SERVICE_NAME=longstone
+    volumes:
+      - longstone-data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: always
+
+volumes:
+  longstone-data:
+  tailscale-state:
+
+networks:
+  default:
+    name: observability-net
+    external: true

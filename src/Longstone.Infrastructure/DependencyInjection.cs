@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+
 
 namespace Longstone.Infrastructure;
 
@@ -38,11 +38,6 @@ public static class DependencyInjection
     public static async Task InitialiseDatabaseAsync(this IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
-        var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-
-        if (!environment.IsDevelopment())
-            return;
-
         var dbContext = scope.ServiceProvider.GetRequiredService<LongstoneDbContext>();
 
         await dbContext.Database.MigrateAsync();

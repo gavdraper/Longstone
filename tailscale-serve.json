@@ -1,0 +1,19 @@
+{
+  "TCP": {
+    "443": {
+      "HTTPS": true
+    }
+  },
+  "Web": {
+    "longstone.tail-scale-domain.ts.net:443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:8080"
+        }
+      }
+    }
+  },
+  "AllowFunnel": {
+    "longstone.tail-scale-domain.ts.net:443": true
+  }
+}
