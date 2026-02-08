@@ -74,6 +74,28 @@ public class MandateRule : IAuditable
         UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
     }
 
+    public void UpdateDetails(
+        string parameters,
+        RuleSeverity severity,
+        DateTime effectiveFrom,
+        DateTime? effectiveTo,
+        TimeProvider timeProvider)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(parameters);
+        ArgumentNullException.ThrowIfNull(timeProvider);
+
+        if (!Enum.IsDefined(severity))
+            throw new ArgumentOutOfRangeException(nameof(severity));
+
+        ValidateEffectiveDateRange(effectiveFrom, effectiveTo);
+
+        Parameters = parameters;
+        Severity = severity;
+        EffectiveFrom = effectiveFrom;
+        EffectiveTo = effectiveTo;
+        UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
+    }
+
     public void UpdateEffectiveDates(DateTime effectiveFrom, DateTime? effectiveTo, TimeProvider timeProvider)
     {
         ArgumentNullException.ThrowIfNull(timeProvider);

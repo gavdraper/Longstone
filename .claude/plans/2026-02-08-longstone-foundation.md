@@ -1,7 +1,7 @@
 # Longstone Foundation — Slices 0 & 1
 
 **Created**: 2026-02-08
-**Status**: Phase 16 Complete (10.5 requires manual NAS deploy)
+**Status**: Phase 17 Complete (10.5 requires manual NAS deploy)
 **Estimated Complexity**: High
 
 ## Objective
@@ -378,19 +378,20 @@ Greenfield repository. Only `PRD.md` (full requirements) and `README.md` exist. 
 
 ### Phase 17: Mandate Commands & Queries (Slice 1)
 
-- [ ] 17.1 **Write tests**: `tests/Longstone.Application.Tests/Mandates/AddMandateRuleHandlerTests.cs`:
+- [x] 17.1 **Write tests**: `tests/Longstone.Application.Tests/Compliance/` — AddMandateRuleHandlerTests (9 tests), UpdateMandateRuleHandlerTests (7 tests), ToggleMandateRuleHandlerTests (5 tests), GetMandateRulesByFundHandlerTests (4 tests), GetMandateRuleByIdHandlerTests (2 tests)
   - Adds rule with valid parameters
-  - Validates rule type + parameters compatibility
-  - Produces audit event
-- [ ] 17.2 Implement mandate commands:
-  - `src/Longstone.Application/Mandates/Commands/AddMandateRule/AddMandateRuleCommand.cs` + Handler + Validator
-  - `src/Longstone.Application/Mandates/Commands/UpdateMandateRule/UpdateMandateRuleCommand.cs` + Handler
-  - `src/Longstone.Application/Mandates/Commands/ToggleMandateRule/ToggleMandateRuleCommand.cs` + Handler
-- [ ] 17.3 Implement mandate queries:
-  - `src/Longstone.Application/Mandates/Queries/GetMandateRules/GetMandateRulesQuery.cs` — FundId, ActiveOnly
-  - `src/Longstone.Application/Mandates/Queries/GetMandateRules/GetMandateRulesHandler.cs`
-  - `src/Longstone.Application/Mandates/Queries/MandateRuleDto.cs`
-- [ ] 17.4 Verify tests pass
+  - Validates rule type, parameters, severity, date range
+  - Update and toggle handlers with not-found scenarios
+- [x] 17.2 Implement mandate commands:
+  - `src/Longstone.Application/Compliance/Commands/AddMandateRule/` — Command + Handler + Validator
+  - `src/Longstone.Application/Compliance/Commands/UpdateMandateRule/` — Command + Handler + Validator
+  - `src/Longstone.Application/Compliance/Commands/ToggleMandateRule/` — Command + Handler + Validator
+  - Added `MandateRule.UpdateDetails()` domain method for parameter/severity/date updates
+- [x] 17.3 Implement mandate queries:
+  - `src/Longstone.Application/Compliance/Queries/GetMandateRulesByFund/` — Query + Handler (supports ActiveOnly filter)
+  - `src/Longstone.Application/Compliance/Queries/GetMandateRuleById/` — Query + Handler
+  - `src/Longstone.Application/Compliance/Queries/MandateRuleDto.cs` + `MandateRuleMapping.cs`
+- [x] 17.4 Verify tests pass — 412 total (261 domain + 81 application + 42 infrastructure + 28 integration), all green, 0 warnings
 
 ### Phase 18: Blazor UI — Fund Pages (Slice 1)
 
