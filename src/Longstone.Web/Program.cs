@@ -19,6 +19,8 @@ builder.Services.AddOutputCache();
 
 var app = builder.Build();
 
+await app.Services.InitialiseDatabaseAsync();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
