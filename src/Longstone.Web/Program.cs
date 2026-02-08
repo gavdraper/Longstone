@@ -1,10 +1,12 @@
 using FluentValidation;
 using Longstone.Application;
+using Longstone.Application.Common.Behaviors;
 using Longstone.Domain.Auth;
 using Longstone.Infrastructure;
 using Longstone.Infrastructure.Auth;
 using Longstone.Web.Auth;
 using Longstone.Web.Components;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using MudBlazor.Services;
 
@@ -18,7 +20,13 @@ builder.Services.AddRazorComponents()
 builder.Services.AddMudServices();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(ApplicationAssemblyReference.Assembly));
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(ApplicationAssemblyReference.Assembly);
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(AuditBehavior<,>));
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
+});
 builder.Services.AddValidatorsFromAssembly(ApplicationAssemblyReference.Assembly);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOutputCache();

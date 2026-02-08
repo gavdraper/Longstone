@@ -1,7 +1,7 @@
 # Longstone Foundation — Slices 0 & 1
 
 **Created**: 2026-02-08
-**Status**: Phase 13 Complete (10.5 requires manual NAS deploy)
+**Status**: Phase 14 Complete (10.5 requires manual NAS deploy)
 **Estimated Complexity**: High
 
 ## Objective
@@ -312,20 +312,20 @@ Greenfield repository. Only `PRD.md` (full requirements) and `README.md` exist. 
 
 ### Phase 14: MediatR Pipeline + Repository Layer (Slice 1)
 
-- [ ] 14.1 Implement MediatR pipeline behaviors:
+- [x] 14.1 Implement MediatR pipeline behaviors:
   - `src/Longstone.Application/Common/Behaviors/ValidationBehavior.cs` — runs FluentValidation before handler
   - `src/Longstone.Application/Common/Behaviors/AuditBehavior.cs` — logs command execution to audit trail (command name, user, timestamp)
   - `src/Longstone.Application/Common/Behaviors/PerformanceBehavior.cs` — logs slow commands (>500ms) as warnings
-- [ ] 14.2 Define repository interfaces in Domain:
+- [x] 14.2 Define repository interfaces in Domain:
   - `src/Longstone.Domain/Funds/IFundRepository.cs` — CRUD + query by manager, by status
   - `src/Longstone.Domain/Instruments/IInstrumentRepository.cs` — search by text (name/ticker/ISIN/SEDOL), filter by asset class/exchange/country
   - `src/Longstone.Domain/Compliance/IMandateRuleRepository.cs` — by fund, active rules only
-- [ ] 14.3 Implement repositories in Infrastructure:
+- [x] 14.3 Implement repositories in Infrastructure:
   - `src/Longstone.Infrastructure/Persistence/Repositories/FundRepository.cs`
   - `src/Longstone.Infrastructure/Persistence/Repositories/InstrumentRepository.cs`
   - `src/Longstone.Infrastructure/Persistence/Repositories/MandateRuleRepository.cs`
-- [ ] 14.4 Register MediatR + pipeline behaviors + repositories in DI
-- [ ] 14.5 Verify build succeeds
+- [x] 14.4 Register MediatR + pipeline behaviors + repositories in DI
+- [x] 14.5 Verify build succeeds — 339 tests (254 domain + 15 application + 42 infrastructure + 28 integration), all green, 0 warnings
 
 ### Phase 15: Fund Commands & Queries (Slice 1)
 

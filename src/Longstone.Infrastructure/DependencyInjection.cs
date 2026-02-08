@@ -1,10 +1,13 @@
 using Longstone.Domain.Auth;
+using Longstone.Domain.Compliance;
+using Longstone.Domain.Funds;
 using Longstone.Domain.Instruments;
 using Longstone.Domain.Instruments.Strategies;
 using Longstone.Infrastructure.Auth;
 using Longstone.Infrastructure.Instruments.Strategies;
 using Longstone.Infrastructure.Persistence;
 using Longstone.Infrastructure.Persistence.Interceptors;
+using Longstone.Infrastructure.Persistence.Repositories;
 using Longstone.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -34,6 +37,10 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+        services.AddScoped<IFundRepository, FundRepository>();
+        services.AddScoped<IInstrumentRepository, InstrumentRepository>();
+        services.AddScoped<IMandateRuleRepository, MandateRuleRepository>();
 
         services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.Equity);
         services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.ETF);
