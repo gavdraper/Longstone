@@ -45,6 +45,11 @@ public sealed record FixedIncomeDetails
             throw new ArgumentOutOfRangeException(nameof(faceValue), "Face value must be greater than zero.");
         }
 
+        if (lastCouponDate.Day > 28)
+        {
+            throw new ArgumentOutOfRangeException(nameof(lastCouponDate), "Last coupon date day must be 28 or earlier to avoid end-of-month drift in coupon date calculations.");
+        }
+
         if (maturityDate <= lastCouponDate)
         {
             throw new ArgumentException("Maturity date must be after the last coupon date.", nameof(maturityDate));

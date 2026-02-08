@@ -219,6 +219,50 @@ public class FixedIncomeValuationStrategyTests
         result.Should().Be(2.50m);
     }
 
+    // Settlement before last coupon date
+
+    [Fact]
+    public void CalculateAccruedIncome_SettlementBeforeLastCouponDate_Throws()
+    {
+        var details = FixedIncomeDetails.Create(
+            couponRate: 0.05m,
+            maturityDate: new DateTime(2036, 1, 15),
+            couponFrequency: CouponFrequency.SemiAnnual,
+            dayCountConvention: DayCountConvention.ActualActualIsda,
+            lastCouponDate: new DateTime(2025, 1, 15),
+            faceValue: 100m);
+
+        var instrument = CreateFixedIncomeInstrument(details);
+        var settlementDate = new DateTime(2025, 1, 14);
+
+        var act = () => _strategy.CalculateAccruedIncome(instrument, settlementDate);
+
+        act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("settlementDate");
+    }
+
+    // Settlement after next coupon date clamps to coupon per period
+
+    [Fact]
+    public void CalculateAccruedIncome_SettlementAfterNextCouponDate_ClampsToMaxCouponPerPeriod()
+    {
+        // 5% semi-annual, face value 100 => coupon per period = 2.50
+        // Settlement 1 month past next coupon date should not exceed 2.50
+        var details = FixedIncomeDetails.Create(
+            couponRate: 0.05m,
+            maturityDate: new DateTime(2036, 1, 15),
+            couponFrequency: CouponFrequency.SemiAnnual,
+            dayCountConvention: DayCountConvention.ActualActualIsda,
+            lastCouponDate: new DateTime(2025, 1, 15),
+            faceValue: 100m);
+
+        var instrument = CreateFixedIncomeInstrument(details);
+        var settlementDate = new DateTime(2025, 8, 15);
+
+        var result = _strategy.CalculateAccruedIncome(instrument, settlementDate);
+
+        result.Should().Be(2.50m);
+    }
+
     // Monthly coupon
 
     [Fact]

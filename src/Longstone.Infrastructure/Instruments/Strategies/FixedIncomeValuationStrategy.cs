@@ -4,7 +4,7 @@ using Longstone.Domain.Instruments.Strategies;
 
 namespace Longstone.Infrastructure.Instruments.Strategies;
 
-public class FixedIncomeValuationStrategy : IInstrumentValuationStrategy
+public sealed class FixedIncomeValuationStrategy : IInstrumentValuationStrategy
 {
     public decimal CalculateMarketValue(decimal quantity, decimal price)
     {
@@ -21,6 +21,11 @@ public class FixedIncomeValuationStrategy : IInstrumentValuationStrategy
             return 0m;
         }
 
+        if (settlementDate < details.LastCouponDate)
+        {
+            throw new ArgumentOutOfRangeException(nameof(settlementDate), "Settlement date cannot be before the last coupon date.");
+        }
+
         var calculator = DayCountCalculatorFactory.Create(details.DayCountConvention);
         var paymentsPerYear = (int)details.CouponFrequency;
         var couponPerPeriod = details.FaceValue * (details.CouponRate / paymentsPerYear);
@@ -33,6 +38,8 @@ public class FixedIncomeValuationStrategy : IInstrumentValuationStrategy
             return 0m;
         }
 
-        return Math.Round(couponPerPeriod * (accrualFraction / periodFraction), 6);
+        var accruedIncome = couponPerPeriod * (accrualFraction / periodFraction);
+
+        return Math.Round(Math.Min(accruedIncome, couponPerPeriod), 6);
     }
 }

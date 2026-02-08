@@ -106,6 +106,38 @@ public class FixedIncomeDetailsTests
         act.Should().Throw<ArgumentException>();
     }
 
+    [Theory]
+    [InlineData(29)]
+    [InlineData(30)]
+    [InlineData(31)]
+    public void Create_WithLastCouponDateDayAfter28_Throws(int day)
+    {
+        var act = () => FixedIncomeDetails.Create(
+            couponRate: 0.05m,
+            maturityDate: new DateTime(2035, 1, 15),
+            couponFrequency: CouponFrequency.Annual,
+            dayCountConvention: DayCountConvention.Actual365Fixed,
+            lastCouponDate: new DateTime(2025, 1, day),
+            faceValue: 100m);
+
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .And.ParamName.Should().Be("lastCouponDate");
+    }
+
+    [Fact]
+    public void Create_WithLastCouponDateDay28_Succeeds()
+    {
+        var details = FixedIncomeDetails.Create(
+            couponRate: 0.05m,
+            maturityDate: new DateTime(2035, 1, 28),
+            couponFrequency: CouponFrequency.Annual,
+            dayCountConvention: DayCountConvention.Actual365Fixed,
+            lastCouponDate: new DateTime(2025, 1, 28),
+            faceValue: 100m);
+
+        details.LastCouponDate.Day.Should().Be(28);
+    }
+
     // NextCouponDate tests
 
     [Fact]
