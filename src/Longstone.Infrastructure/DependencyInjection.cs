@@ -1,6 +1,7 @@
 using Longstone.Domain.Auth;
 using Longstone.Infrastructure.Auth;
 using Longstone.Infrastructure.Persistence;
+using Longstone.Infrastructure.Persistence.Interceptors;
 using Longstone.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -18,8 +19,13 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("Longstone")
             ?? throw new InvalidOperationException("Connection string 'Longstone' is not configured.");
 
-        services.AddDbContext<LongstoneDbContext>(options =>
-            options.UseSqlite(connectionString));
+        services.AddScoped<AuditSaveChangesInterceptor>();
+
+        services.AddDbContext<LongstoneDbContext>((sp, options) =>
+        {
+            options.UseSqlite(connectionString);
+            options.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
+        });
 
         services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();

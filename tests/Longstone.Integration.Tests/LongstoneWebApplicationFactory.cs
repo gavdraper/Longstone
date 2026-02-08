@@ -1,4 +1,5 @@
 using Longstone.Infrastructure.Persistence;
+using Longstone.Infrastructure.Persistence.Interceptors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
@@ -17,10 +18,17 @@ public class LongstoneWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // Remove the existing DbContext registration
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<LongstoneDbContext>));
-            if (descriptor is not null)
+            // Remove ALL DbContext-related registrations to prevent double-registration of interceptors.
+            // AddDbContext from AddInfrastructure registered option-builder actions that would also run,
+            // causing duplicate interceptors. Removing these descriptors and re-registering cleanly avoids that.
+            var descriptorsToRemove = services
+                .Where(d => d.ServiceType == typeof(DbContextOptions<LongstoneDbContext>)
+                         || d.ServiceType == typeof(LongstoneDbContext)
+                         || d.ServiceType.IsGenericType
+                            && d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>)
+                            && d.ServiceType.GenericTypeArguments[0] == typeof(LongstoneDbContext))
+                .ToList();
+            foreach (var descriptor in descriptorsToRemove)
             {
                 services.Remove(descriptor);
             }
@@ -29,11 +37,16 @@ public class LongstoneWebApplicationFactory : WebApplicationFactory<Program>
             _connection = new SqliteConnection("DataSource=:memory:");
             _connection.Open();
 
-            // Re-register with in-memory SQLite (same provider, no dual provider conflict)
-            services.AddDbContext<LongstoneDbContext>(options =>
+            // Build options directly to avoid action accumulation from multiple AddDbContext calls
+            services.AddScoped(sp =>
             {
-                options.UseSqlite(_connection);
+                var optionsBuilder = new DbContextOptionsBuilder<LongstoneDbContext>();
+                optionsBuilder.UseSqlite(_connection);
+                optionsBuilder.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
+                return optionsBuilder.Options;
             });
+
+            services.AddScoped<LongstoneDbContext>();
         });
     }
 

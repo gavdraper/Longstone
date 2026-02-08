@@ -16,6 +16,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddMudServices();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(ApplicationAssemblyReference.Assembly));
 builder.Services.AddValidatorsFromAssembly(ApplicationAssemblyReference.Assembly);
 builder.Services.AddInfrastructure(builder.Configuration);
