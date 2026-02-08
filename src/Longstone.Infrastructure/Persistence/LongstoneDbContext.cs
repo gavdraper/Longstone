@@ -1,5 +1,6 @@
 using Longstone.Domain.Audit;
 using Longstone.Domain.Auth;
+using Longstone.Domain.Common;
 using Longstone.Domain.Compliance;
 using Longstone.Domain.Funds;
 using Longstone.Domain.Instruments;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Longstone.Infrastructure.Persistence;
 
-public class LongstoneDbContext : DbContext
+public class LongstoneDbContext : DbContext, IUnitOfWork
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();

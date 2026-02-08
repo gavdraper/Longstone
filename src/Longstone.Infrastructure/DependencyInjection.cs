@@ -1,4 +1,5 @@
 using Longstone.Domain.Auth;
+using Longstone.Domain.Common;
 using Longstone.Domain.Compliance;
 using Longstone.Domain.Funds;
 using Longstone.Domain.Instruments;
@@ -37,6 +38,8 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<LongstoneDbContext>());
 
         services.AddScoped<IFundRepository, FundRepository>();
         services.AddScoped<IInstrumentRepository, InstrumentRepository>();

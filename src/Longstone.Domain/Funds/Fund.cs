@@ -36,6 +36,7 @@ public class Fund : IAuditable
         ArgumentException.ThrowIfNullOrWhiteSpace(isin);
         ArgumentException.ThrowIfNullOrWhiteSpace(baseCurrency);
         ArgumentNullException.ThrowIfNull(timeProvider);
+        ValidateIdentifierLengths(lei, isin);
 
         if (!Enum.IsDefined(fundType))
             throw new ArgumentOutOfRangeException(nameof(fundType));
@@ -56,6 +57,36 @@ public class Fund : IAuditable
             CreatedAt = now,
             UpdatedAt = now
         };
+    }
+
+    public void UpdateDetails(
+        string name,
+        string lei,
+        string isin,
+        FundType fundType,
+        string baseCurrency,
+        string? benchmarkIndex,
+        DateTime inceptionDate,
+        TimeProvider timeProvider)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(lei);
+        ArgumentException.ThrowIfNullOrWhiteSpace(isin);
+        ArgumentException.ThrowIfNullOrWhiteSpace(baseCurrency);
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        ValidateIdentifierLengths(lei, isin);
+
+        if (!Enum.IsDefined(fundType))
+            throw new ArgumentOutOfRangeException(nameof(fundType));
+
+        Name = name;
+        Lei = lei;
+        Isin = isin;
+        FundType = fundType;
+        BaseCurrency = baseCurrency;
+        BenchmarkIndex = benchmarkIndex;
+        InceptionDate = inceptionDate;
+        UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
     }
 
     public void Suspend(TimeProvider timeProvider)
@@ -119,5 +150,14 @@ public class Fund : IAuditable
 
         _assignedManagers.Remove(manager);
         UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
+    }
+
+    private static void ValidateIdentifierLengths(string lei, string isin)
+    {
+        if (lei.Length != 20)
+            throw new ArgumentException("LEI must be exactly 20 characters (ISO 17442).", nameof(lei));
+
+        if (isin.Length != 12)
+            throw new ArgumentException("ISIN must be exactly 12 characters (ISO 6166).", nameof(isin));
     }
 }

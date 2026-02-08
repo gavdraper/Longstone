@@ -39,42 +39,38 @@ public sealed class FundRepository(LongstoneDbContext dbContext) : IFundReposito
     }
 
     public async Task<(IReadOnlyList<Fund> Items, int TotalCount)> SearchAsync(
-        string? searchTerm,
-        FundStatus? statusFilter,
-        Guid? managerFilter,
-        int page,
-        int pageSize,
+        FundSearchCriteria criteria,
         CancellationToken cancellationToken = default)
     {
         var query = dbContext.Funds
             .Include(f => f.AssignedManagers)
             .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(searchTerm))
+        if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
         {
-            var term = searchTerm.Trim().ToUpperInvariant();
+            var term = criteria.SearchTerm.Trim().ToUpperInvariant();
             query = query.Where(f =>
                 f.Name.ToUpper().Contains(term) ||
                 f.Lei.ToUpper().Contains(term) ||
                 f.Isin.ToUpper().Contains(term));
         }
 
-        if (statusFilter.HasValue)
+        if (criteria.StatusFilter.HasValue)
         {
-            query = query.Where(f => f.Status == statusFilter.Value);
+            query = query.Where(f => f.Status == criteria.StatusFilter.Value);
         }
 
-        if (managerFilter.HasValue)
+        if (criteria.ManagerFilter.HasValue)
         {
-            query = query.Where(f => f.AssignedManagers.Any(m => m.UserId == managerFilter.Value));
+            query = query.Where(f => f.AssignedManagers.Any(m => m.UserId == criteria.ManagerFilter.Value));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query
             .OrderBy(f => f.Name)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
+            .Skip((criteria.Page - 1) * criteria.PageSize)
+            .Take(criteria.PageSize)
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);

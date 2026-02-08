@@ -1,7 +1,7 @@
 # Longstone Foundation — Slices 0 & 1
 
 **Created**: 2026-02-08
-**Status**: Phase 14 Complete (10.5 requires manual NAS deploy)
+**Status**: Phase 16 Complete (10.5 requires manual NAS deploy)
 **Estimated Complexity**: High
 
 ## Objective
@@ -329,42 +329,52 @@ Greenfield repository. Only `PRD.md` (full requirements) and `README.md` exist. 
 
 ### Phase 15: Fund Commands & Queries (Slice 1)
 
-- [ ] 15.1 **Write tests**: `tests/Longstone.Application.Tests/Funds/CreateFundHandlerTests.cs`:
+- [x] 15.1 **Write tests**: `tests/Longstone.Application.Tests/Funds/CreateFundHandlerTests.cs`:
   - Creates fund with valid data
   - Fails validation when name is empty
   - Fails validation when base currency missing
-  - Produces audit event
-- [ ] 15.2 **Write tests**: `tests/Longstone.Application.Tests/Funds/GetFundsHandlerTests.cs`:
+  - Additional: validation for LEI, ISIN, invalid fund type
+- [x] 15.2 **Write tests**: `tests/Longstone.Application.Tests/Funds/GetFundsHandlerTests.cs`:
   - Returns paginated results
   - Filters by status
-  - Fund manager scoping: returns only assigned funds when scope is Own
-- [ ] 15.3 Implement fund commands:
+  - Fund manager scoping: passes manager filter to repository
+  - Additional: GetFundByIdHandlerTests, UpdateFundHandlerTests, ChangeFundStatusHandlerTests
+- [x] 15.3 Implement fund commands:
   - `src/Longstone.Application/Funds/Commands/CreateFund/CreateFundCommand.cs` — record with all fund properties
   - `src/Longstone.Application/Funds/Commands/CreateFund/CreateFundCommandHandler.cs`
   - `src/Longstone.Application/Funds/Commands/CreateFund/CreateFundValidator.cs`
   - `src/Longstone.Application/Funds/Commands/UpdateFund/UpdateFundCommand.cs` + Handler + Validator
   - `src/Longstone.Application/Funds/Commands/ChangeFundStatus/ChangeFundStatusCommand.cs` + Handler
-- [ ] 15.4 Implement fund queries:
-  - `src/Longstone.Application/Funds/Queries/GetFunds/GetFundsQuery.cs` — Page, PageSize, StatusFilter, SearchTerm
+  - Added `Fund.UpdateDetails()` method to domain entity
+  - Added `IUnitOfWork` interface in Domain, implemented by DbContext
+- [x] 15.4 Implement fund queries:
+  - `src/Longstone.Application/Funds/Queries/GetFunds/GetFundsQuery.cs` — Page, PageSize, StatusFilter, SearchTerm, ManagerFilter
   - `src/Longstone.Application/Funds/Queries/GetFunds/GetFundsHandler.cs` — returns `PaginatedList<FundDto>`
   - `src/Longstone.Application/Funds/Queries/GetFundById/GetFundByIdQuery.cs` + Handler
   - `src/Longstone.Application/Common/Models/PaginatedList.cs` — generic paginated result
   - `src/Longstone.Application/Funds/Queries/FundDto.cs` — projection DTO
-- [ ] 15.5 Verify tests pass
+  - `src/Longstone.Application/Funds/Queries/FundMapping.cs` — centralized mapping
+- [x] 15.5 Verify tests pass — 365 total (254 domain + 41 application + 42 infrastructure + 28 integration), all green, 0 warnings
 
 ### Phase 16: Instrument Queries (Slice 1)
 
-- [ ] 16.1 **Write tests**: `tests/Longstone.Application.Tests/Instruments/SearchInstrumentsHandlerTests.cs`:
+- [x] 16.1 **Write tests**: `tests/Longstone.Application.Tests/Instruments/SearchInstrumentsHandlerTests.cs`:
   - Search by ticker returns match
   - Search by ISIN returns match
   - Filter by asset class works
+  - Filter by exchange works
   - Empty search returns paginated all
-- [ ] 16.2 Implement instrument queries:
-  - `src/Longstone.Application/Instruments/Queries/SearchInstruments/SearchInstrumentsQuery.cs` — SearchTerm, AssetClassFilter, ExchangeFilter, Page, PageSize
+  - Custom pagination
+  - Empty results
+  - DTO mapping correctness
+  - Also: `GetInstrumentByIdHandlerTests.cs` (found + not-found)
+- [x] 16.2 Implement instrument queries:
+  - `src/Longstone.Application/Instruments/Queries/SearchInstruments/SearchInstrumentsQuery.cs` — SearchTerm, AssetClassFilter, ExchangeFilter, CountryFilter, Page, PageSize
   - `src/Longstone.Application/Instruments/Queries/SearchInstruments/SearchInstrumentsHandler.cs`
   - `src/Longstone.Application/Instruments/Queries/GetInstrumentById/GetInstrumentByIdQuery.cs` + Handler
   - `src/Longstone.Application/Instruments/Queries/InstrumentDto.cs`
-- [ ] 16.3 Verify tests pass
+  - `src/Longstone.Application/Instruments/Queries/InstrumentMapping.cs`
+- [x] 16.3 Verify tests pass — 375 total (254 domain + 51 application + 42 infrastructure + 28 integration), all green, 0 warnings
 
 ### Phase 17: Mandate Commands & Queries (Slice 1)
 

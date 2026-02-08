@@ -10,7 +10,7 @@ public class FundTests
 
     private Fund CreateValidFund(
         string name = "UK Growth Fund",
-        string lei = "549300EXAMPLE00001X",
+        string lei = "549300EXAMPLE000001X",
         string isin = "GB00B3X7QG63",
         FundType fundType = FundType.OEIC,
         string baseCurrency = "GBP",
@@ -37,7 +37,7 @@ public class FundTests
 
         fund.Id.Should().NotBe(Guid.Empty);
         fund.Name.Should().Be("UK Growth Fund");
-        fund.Lei.Should().Be("549300EXAMPLE00001X");
+        fund.Lei.Should().Be("549300EXAMPLE000001X");
         fund.Isin.Should().Be("GB00B3X7QG63");
         fund.FundType.Should().Be(FundType.OEIC);
         fund.BaseCurrency.Should().Be("GBP");
@@ -120,7 +120,7 @@ public class FundTests
     [Fact]
     public void Create_WithNullTimeProvider_Throws()
     {
-        var act = () => Fund.Create("UK Growth Fund", "549300EXAMPLE00001X", "GB00B3X7QG63", FundType.OEIC, "GBP", "FTSE 100", new DateTime(2025, 1, 1), null!);
+        var act = () => Fund.Create("UK Growth Fund", "549300EXAMPLE000001X", "GB00B3X7QG63", FundType.OEIC, "GBP", "FTSE 100", new DateTime(2025, 1, 1), null!);
 
         act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("timeProvider");
     }
@@ -346,6 +346,76 @@ public class FundTests
         var act = () => fund.RemoveManager(userId, null!);
 
         act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("timeProvider");
+    }
+
+    // UpdateDetails tests
+
+    [Fact]
+    public void UpdateDetails_WithValidInputs_UpdatesAllProperties()
+    {
+        var fund = CreateValidFund();
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        fund.UpdateDetails("New Name", "549300UPDATED000001X", "GB00BUPDATE1",
+            FundType.UnitTrust, "USD", "S&P 500",
+            new DateTime(2025, 6, 1), _timeProvider);
+
+        fund.Name.Should().Be("New Name");
+        fund.Lei.Should().Be("549300UPDATED000001X");
+        fund.Isin.Should().Be("GB00BUPDATE1");
+        fund.FundType.Should().Be(FundType.UnitTrust);
+        fund.BaseCurrency.Should().Be("USD");
+        fund.BenchmarkIndex.Should().Be("S&P 500");
+        fund.InceptionDate.Should().Be(new DateTime(2025, 6, 1));
+        fund.UpdatedAt.Should().Be(_timeProvider.GetUtcNow().UtcDateTime);
+        fund.UpdatedAt.Should().BeAfter(fund.CreatedAt);
+    }
+
+    [Fact]
+    public void UpdateDetails_WithNullBenchmark_SetsNull()
+    {
+        var fund = CreateValidFund();
+
+        fund.UpdateDetails("Name", "549300EXAMPLE000001X", "GB00B3X7QG63",
+            FundType.OEIC, "GBP", null, new DateTime(2025, 1, 1), _timeProvider);
+
+        fund.BenchmarkIndex.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void UpdateDetails_WithInvalidName_Throws(string? name)
+    {
+        var fund = CreateValidFund();
+
+        var act = () => fund.UpdateDetails(name!, "549300EXAMPLE000001X", "GB00B3X7QG63",
+            FundType.OEIC, "GBP", null, new DateTime(2025, 1, 1), _timeProvider);
+
+        act.Should().Throw<ArgumentException>().And.ParamName.Should().Be("name");
+    }
+
+    [Fact]
+    public void UpdateDetails_WithNullTimeProvider_Throws()
+    {
+        var fund = CreateValidFund();
+
+        var act = () => fund.UpdateDetails("Name", "549300EXAMPLE000001X", "GB00B3X7QG63",
+            FundType.OEIC, "GBP", null, new DateTime(2025, 1, 1), null!);
+
+        act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("timeProvider");
+    }
+
+    [Fact]
+    public void UpdateDetails_WithInvalidFundType_Throws()
+    {
+        var fund = CreateValidFund();
+
+        var act = () => fund.UpdateDetails("Name", "549300EXAMPLE000001X", "GB00B3X7QG63",
+            (FundType)999, "GBP", null, new DateTime(2025, 1, 1), _timeProvider);
+
+        act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("fundType");
     }
 
     // Enum validation tests
