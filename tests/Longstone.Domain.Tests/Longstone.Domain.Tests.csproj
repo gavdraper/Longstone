@@ -4,4 +4,8 @@
     <ProjectReference Include="..\..\src\Longstone.Domain\Longstone.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.2.0" />
+  </ItemGroup>
+
 </Project>
