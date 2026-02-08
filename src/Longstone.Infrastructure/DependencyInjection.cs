@@ -1,5 +1,8 @@
 using Longstone.Domain.Auth;
+using Longstone.Domain.Instruments;
+using Longstone.Domain.Instruments.Strategies;
 using Longstone.Infrastructure.Auth;
+using Longstone.Infrastructure.Instruments.Strategies;
 using Longstone.Infrastructure.Persistence;
 using Longstone.Infrastructure.Persistence.Interceptors;
 using Longstone.Infrastructure.Persistence.Seed;
@@ -31,6 +34,27 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+        services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.Equity);
+        services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.ETF);
+        services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.FixedIncome);
+        services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.Fund);
+        services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.Cash);
+        services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.Alternative);
+
+        services.AddKeyedScoped<IInstrumentTaxStrategy, EquityTaxStrategy>(AssetClass.Equity);
+        services.AddKeyedScoped<IInstrumentTaxStrategy, EtfTaxStrategy>(AssetClass.ETF);
+        services.AddKeyedScoped<IInstrumentTaxStrategy, NotSupportedTaxStrategy>(AssetClass.FixedIncome);
+        services.AddKeyedScoped<IInstrumentTaxStrategy, NotSupportedTaxStrategy>(AssetClass.Fund);
+        services.AddKeyedScoped<IInstrumentTaxStrategy, NotSupportedTaxStrategy>(AssetClass.Cash);
+        services.AddKeyedScoped<IInstrumentTaxStrategy, NotSupportedTaxStrategy>(AssetClass.Alternative);
+
+        services.AddKeyedScoped<IInstrumentComplianceStrategy, DefaultComplianceStrategy>(AssetClass.Equity);
+        services.AddKeyedScoped<IInstrumentComplianceStrategy, DefaultComplianceStrategy>(AssetClass.ETF);
+        services.AddKeyedScoped<IInstrumentComplianceStrategy, DefaultComplianceStrategy>(AssetClass.FixedIncome);
+        services.AddKeyedScoped<IInstrumentComplianceStrategy, DefaultComplianceStrategy>(AssetClass.Fund);
+        services.AddKeyedScoped<IInstrumentComplianceStrategy, DefaultComplianceStrategy>(AssetClass.Cash);
+        services.AddKeyedScoped<IInstrumentComplianceStrategy, DefaultComplianceStrategy>(AssetClass.Alternative);
 
         return services;
     }
