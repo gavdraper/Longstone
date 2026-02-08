@@ -1,7 +1,9 @@
 using FluentValidation;
 using Longstone.Application;
 using Longstone.Infrastructure;
+using Longstone.Web.Auth;
 using Longstone.Web.Components;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,21 @@ builder.Services.AddValidatorsFromAssembly(ApplicationAssemblyReference.Assembly
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOutputCache();
 
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/auth/login";
+        options.LogoutPath = "/auth/logout";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+    });
+
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
+
 var app = builder.Build();
 
 await app.Services.InitialiseDatabaseAsync();
@@ -29,11 +46,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseAntiforgery();
 
 app.UseOutputCache();
 
 app.MapStaticAssets();
+
+app.MapAuthEndpoints();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
@@ -41,3 +63,5 @@ app.MapRazorComponents<App>()
 app.MapDefaultEndpoints();
 
 app.Run();
+
+public partial class Program;

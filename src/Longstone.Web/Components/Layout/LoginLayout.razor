@@ -1,0 +1,13 @@
+@using Longstone.Web.Theme
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="LongstoneTheme.Instance" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>

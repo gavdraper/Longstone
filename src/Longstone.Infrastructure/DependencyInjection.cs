@@ -1,5 +1,8 @@
+using Longstone.Domain.Auth;
+using Longstone.Infrastructure.Auth;
 using Longstone.Infrastructure.Persistence;
 using Longstone.Infrastructure.Persistence.Seed;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +19,9 @@ public static class DependencyInjection
 
         services.AddDbContext<LongstoneDbContext>(options =>
             options.UseSqlite(connectionString));
+
+        services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
 
         return services;
     }

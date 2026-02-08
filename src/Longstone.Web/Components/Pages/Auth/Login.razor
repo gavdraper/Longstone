@@ -1,0 +1,88 @@
+@page "/auth/login"
+@using Longstone.Web.Theme
+@using Longstone.Web.Components.Layout
+@layout LoginLayout
+
+<PageTitle>Longstone - Login</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center" Style="min-height: 100vh;">
+    <MudCard Elevation="4" Class="pa-8 mx-auto" Style="width: 100%; max-width: 420px;">
+        <MudCardContent>
+            <div class="d-flex align-center justify-center mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Size="Size.Large" Color="Color.Primary" />
+                <MudText Typo="Typo.h4" Class="ml-2" Color="Color.Primary">Longstone</MudText>
+            </div>
+            <MudText Typo="Typo.body2" Align="Align.Center" Class="mb-6" Color="Color.Secondary">
+                Portfolio Management System
+            </MudText>
+
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">
+                    @_errorMessage
+                </MudAlert>
+            }
+
+            <form method="post" action="/api/auth/login">
+                <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                <MudTextField T="string"
+                              Label="Username"
+                              name="username"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Person"
+                              Class="mb-4"
+                              Required="true"
+                              AutoFocus="true" />
+                <MudTextField T="string"
+                              Label="Password"
+                              name="password"
+                              InputType="InputType.Password"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Lock"
+                              Class="mb-6"
+                              Required="true" />
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           FullWidth="true"
+                           Size="Size.Large">
+                    Sign In
+                </MudButton>
+            </form>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? ErrorParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrlParam { get; set; }
+
+    private string? _errorMessage;
+    private string? _returnUrl;
+
+    protected override void OnInitialized()
+    {
+        _errorMessage = ErrorParam;
+        _returnUrl = IsLocalUrl(ReturnUrlParam) ? ReturnUrlParam : "/";
+    }
+
+    private static bool IsLocalUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url) || url.StartsWith("//", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme != Uri.UriSchemeFile)
+        {
+            return false;
+        }
+
+        return url.StartsWith('/');
+    }
+}

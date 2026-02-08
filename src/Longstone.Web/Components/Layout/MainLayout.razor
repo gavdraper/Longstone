@@ -1,5 +1,10 @@
 @using Longstone.Web.Theme
+@using Longstone.Web.Auth
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inherits LayoutComponentBase
+@attribute [Authorize]
 
 <MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="LongstoneTheme.Instance" />
 <MudPopoverProvider />
@@ -21,9 +26,18 @@
                              title="Switch to dark mode"
                              toggled-title="Switch to light mode" />
         <MudDivider Vertical="true" FlexItem="true" Class="mx-2 my-3" />
-        <MudText Typo="Typo.body2" Class="mr-2">Dev Admin</MudText>
-        <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Class="mr-2">SystemAdmin</MudChip>
-        <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" title="Logout" />
+        <AuthorizeView>
+            <Authorized>
+                <MudText Typo="Typo.body2" Class="mr-2">@context.User.FindFirst(LongstoneClaimTypes.FullName)?.Value</MudText>
+                <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Class="mr-2">@context.User.FindFirst(ClaimTypes.Role)?.Value</MudChip>
+            </Authorized>
+        </AuthorizeView>
+        <form method="post" action="/api/auth/logout">
+            <MudIconButton Icon="@Icons.Material.Filled.Logout"
+                           Color="Color.Inherit"
+                           title="Logout"
+                           ButtonType="ButtonType.Submit" />
+        </form>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
