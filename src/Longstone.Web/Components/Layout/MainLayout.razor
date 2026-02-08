@@ -1,6 +1,7 @@
+@using Longstone.Web.Theme
 @inherits LayoutComponentBase
 
-<MudThemeProvider />
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="LongstoneTheme.Instance" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -9,14 +10,26 @@
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                        OnClick="@ToggleDrawer" />
-        <MudText Typo="Typo.h5" Class="ml-3">Longstone</MudText>
+        <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="ml-2" />
+        <MudText Typo="Typo.h5" Class="ml-2">Longstone</MudText>
         <MudSpacer />
+        <MudToggleIconButton @bind-Toggled="_isDarkMode"
+                             Icon="@Icons.Material.Filled.DarkMode"
+                             ToggledIcon="@Icons.Material.Filled.LightMode"
+                             Color="Color.Inherit"
+                             ToggledColor="Color.Inherit"
+                             title="Switch to dark mode"
+                             toggled-title="Switch to light mode" />
+        <MudDivider Vertical="true" FlexItem="true" Class="mx-2 my-3" />
+        <MudText Typo="Typo.body2" Class="mr-2">Dev Admin</MudText>
+        <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Class="mr-2">SystemAdmin</MudChip>
+        <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" title="Logout" />
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
     </MudDrawer>
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="my-4">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-4 px-6">
             @Body
         </MudContainer>
     </MudMainContent>
@@ -30,6 +43,7 @@
 
 @code {
     private bool _drawerOpen = true;
+    private bool _isDarkMode;
 
     private void ToggleDrawer()
     {

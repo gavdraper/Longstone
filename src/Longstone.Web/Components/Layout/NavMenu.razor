@@ -1,3 +1,21 @@
 <MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+    <MudNavLink Href="/funds" Icon="@Icons.Material.Filled.AccountBalanceWallet">Funds</MudNavLink>
+    <MudNavLink Href="/instruments" Icon="@Icons.Material.Filled.ShowChart">Instruments</MudNavLink>
+    <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.ShoppingCart" Disabled="true">Orders</MudNavLink>
+    <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.VerifiedUser" Disabled="true">Compliance</MudNavLink>
+    <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.Warning" Disabled="true">Risk</MudNavLink>
+    <MudNavLink Href="/coming-soon" Icon="@Icons.Material.Filled.Assessment" Disabled="true">Reports</MudNavLink>
+
+    <MudDivider Class="my-2" />
+
+    <MudNavGroup Title="Admin" Icon="@Icons.Material.Filled.AdminPanelSettings" @bind-Expanded="_adminExpanded">
+        <MudNavLink Href="/admin/users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+        <MudNavLink Href="/admin/permissions" Icon="@Icons.Material.Filled.Lock">Permissions</MudNavLink>
+        <MudNavLink Href="/admin/audit-log" Icon="@Icons.Material.Filled.History">Audit Log</MudNavLink>
+    </MudNavGroup>
 </MudNavMenu>
+
+@code {
+    private bool _adminExpanded = true;
+}
