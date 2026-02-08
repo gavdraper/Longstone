@@ -1,0 +1,167 @@
+@using Longstone.Application.Compliance.Commands.AddMandateRule
+@using Longstone.Application.Compliance.Commands.ToggleMandateRule
+@using Longstone.Application.Compliance.Queries
+@using Longstone.Application.Compliance.Queries.GetMandateRulesByFund
+@using Longstone.Domain.Compliance
+@using Longstone.Web.Components.Pages.Funds
+@inject MediatR.IMediator Mediator
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ILogger<MandateRulesTab> Logger
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_loadError is not null)
+{
+    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@_loadError</MudAlert>
+}
+else
+{
+    @if (CanConfigure)
+    {
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenAddRuleDialog"
+                   Class="mb-4">
+            Add Rule
+        </MudButton>
+    }
+
+    @if (_rules.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+            No mandate rules configured for this fund.
+        </MudAlert>
+    }
+    else
+    {
+        <MudDataGrid T="MandateRuleDto" Items="_rules" Dense="true" Hover="true" Loading="_loading">
+            <Columns>
+                <TemplateColumn Title="Rule Type">
+                    <CellTemplate>
+                        <MudText Typo="Typo.body2">@FundDisplayHelpers.FormatRuleType(context.Item.RuleType)</MudText>
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.Parameters" Title="Parameters" />
+                <TemplateColumn Title="Severity">
+                    <CellTemplate>
+                        <MudChip T="string"
+                                 Size="Size.Small"
+                                 Color="@(context.Item.Severity == RuleSeverity.Hard ? Color.Error : Color.Warning)">
+                            @context.Item.Severity
+                        </MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Active">
+                    <CellTemplate>
+                        @if (CanConfigure)
+                        {
+                            <MudSwitch T="bool"
+                                       Value="context.Item.IsActive"
+                                       ValueChanged="@(active => ToggleRule(context.Item.Id, active))"
+                                       Color="Color.Success" />
+                        }
+                        else
+                        {
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Color="@(context.Item.IsActive ? Color.Success : Color.Default)">
+                                @(context.Item.IsActive ? "Active" : "Inactive")
+                            </MudChip>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Effective From">
+                    <CellTemplate>
+                        <MudText Typo="Typo.body2">@context.Item.EffectiveFrom.ToString("d")</MudText>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Effective To">
+                    <CellTemplate>
+                        <MudText Typo="Typo.body2">@(context.Item.EffectiveTo?.ToString("d") ?? "—")</MudText>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    }
+}
+
+@code {
+    [Parameter]
+    public Guid FundId { get; set; }
+
+    [Parameter]
+    public bool CanConfigure { get; set; }
+
+    private IReadOnlyList<MandateRuleDto> _rules = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRules();
+    }
+
+    private async Task LoadRules()
+    {
+        _loading = true;
+        _loadError = null;
+
+        try
+        {
+            _rules = await Mediator.Send(new GetMandateRulesByFundQuery(FundId));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load mandate rules for fund {FundId}", FundId);
+            _loadError = "Failed to load mandate rules. Please try again.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ToggleRule(Guid ruleId, bool isActive)
+    {
+        try
+        {
+            await Mediator.Send(new ToggleMandateRuleCommand(ruleId, isActive));
+            Snackbar.Add($"Rule {(isActive ? "activated" : "deactivated")}.", Severity.Success);
+            await LoadRules();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to toggle mandate rule {RuleId}", ruleId);
+            Snackbar.Add("Failed to update rule. Please try again.", Severity.Error);
+        }
+    }
+
+    private async Task OpenAddRuleDialog()
+    {
+        var parameters = new DialogParameters<AddMandateRuleDialog>
+        {
+            { x => x.FundId, FundId }
+        };
+
+        var dialog = await DialogService.ShowAsync<AddMandateRuleDialog>("Add Mandate Rule",
+            parameters,
+            new DialogOptions
+            {
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true,
+                CloseOnEscapeKey = true
+            });
+
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await LoadRules();
+        }
+    }
+
+}

@@ -189,7 +189,7 @@ public class PermissionServiceTests : IAsyncDisposable
 
         var permissions = await _sut.GetEffectivePermissionsAsync(user.Id);
 
-        permissions.Should().HaveCount(10, "should include all permissions, granted or not");
+        permissions.Should().HaveCount(11, "should include all permissions, granted or not");
 
         var viewPortfolios = permissions.Single(p => p.Permission == Permission.ViewPortfolios);
         viewPortfolios.IsGranted.Should().BeTrue();
@@ -231,7 +231,7 @@ public class PermissionServiceTests : IAsyncDisposable
 
         var permissions = await _sut.GetEffectivePermissionsAsync(user.Id);
 
-        permissions.Should().HaveCount(10);
+        permissions.Should().HaveCount(11);
         permissions.Should().AllSatisfy(p =>
         {
             p.IsGranted.Should().BeTrue();

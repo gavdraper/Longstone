@@ -16,6 +16,7 @@ public static class RolePermissionSeedData
 
         // Fund Manager
         permissions.Add(RolePermission.Create(Role.FundManager, Permission.ViewPortfolios, PermissionScope.Own));
+        permissions.Add(RolePermission.Create(Role.FundManager, Permission.ManageFunds, PermissionScope.Own));
         permissions.Add(RolePermission.Create(Role.FundManager, Permission.CreateOrders, PermissionScope.Own));
         permissions.Add(RolePermission.Create(Role.FundManager, Permission.ViewRiskDashboards, PermissionScope.Own));
 

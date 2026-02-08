@@ -29,6 +29,7 @@ builder.Services.AddMediatR(cfg =>
 });
 builder.Services.AddValidatorsFromAssembly(ApplicationAssemblyReference.Assembly);
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<CurrentUserPermissionService>();
 builder.Services.AddOutputCache();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

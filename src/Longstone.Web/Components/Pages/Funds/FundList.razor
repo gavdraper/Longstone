@@ -1,6 +1,184 @@
 @page "/funds"
+@using Longstone.Application.Funds.Queries
+@using Longstone.Application.Funds.Queries.GetFunds
+@using Longstone.Domain.Auth
+@using Longstone.Domain.Funds
+@using Longstone.Web.Auth
+@using Longstone.Web.Components.Pages.Funds
+@inject MediatR.IMediator Mediator
+@inject CurrentUserPermissionService Permissions
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>Funds - Longstone</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Funds</MudText>
-<MudText Typo="Typo.body1" Color="Color.Secondary">Fund management will be implemented in Slice 1.</MudText>
+<MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">Manage funds, view details, and configure mandate rules.</MudText>
+
+<MudPaper Elevation="0" Class="pa-4 mb-4">
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="4">
+            <MudTextField @bind-Value="_searchTerm"
+                          Placeholder="Search funds..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Immediate="true"
+                          DebounceInterval="300"
+                          OnDebounceIntervalElapsed="OnSearchChanged"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudSelect T="FundStatus?" Value="_statusFilter"
+                       Placeholder="All Statuses"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Clearable="true"
+                       ValueChanged="OnStatusFilterChanged">
+                @foreach (var status in Enum.GetValues<FundStatus>())
+                {
+                    <MudSelectItem T="FundStatus?" Value="@status">@status</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="12" md="5" Class="d-flex align-center justify-end">
+            @if (_canCreateFund)
+            {
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="OpenCreateFundDialog">
+                    New Fund
+                </MudButton>
+            }
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+<MudDataGrid T="FundDto"
+             ServerData="LoadServerData"
+             @ref="_dataGrid"
+             Hover="true"
+             Dense="true"
+             RowClick="OnRowClick"
+             RowStyle="cursor: pointer;"
+             Loading="_loading">
+    <Columns>
+        <PropertyColumn Property="x => x.Name" Title="Name" />
+        <TemplateColumn Title="Type">
+            <CellTemplate>
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">
+                    @FundDisplayHelpers.FormatFundType(context.Item.FundType)
+                </MudChip>
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.BaseCurrency" Title="Currency" />
+        <PropertyColumn Property="x => x.BenchmarkIndex" Title="Benchmark" />
+        <TemplateColumn Title="Status">
+            <CellTemplate>
+                <MudChip T="string" Size="Size.Small" Color="@FundDisplayHelpers.GetStatusColor(context.Item.Status)">
+                    @context.Item.Status
+                </MudChip>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Managers">
+            <CellTemplate>
+                @if (context.Item.Managers.Count > 0)
+                {
+                    <MudText Typo="Typo.body2">@context.Item.Managers.Count manager(s)</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">None</MudText>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="FundDto" />
+    </PagerContent>
+    <NoRecordsContent>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">No funds found.</MudText>
+    </NoRecordsContent>
+</MudDataGrid>
+
+@code {
+    private MudDataGrid<FundDto>? _dataGrid;
+    private string? _searchTerm;
+    private FundStatus? _statusFilter;
+    private bool _canCreateFund;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _canCreateFund = await Permissions.HasPermissionAsync(Permission.ManageFunds);
+    }
+
+    private async Task<GridData<FundDto>> LoadServerData(GridState<FundDto> state)
+    {
+        _loading = true;
+
+        try
+        {
+            var query = new GetFundsQuery(
+                Page: state.Page + 1,
+                PageSize: state.PageSize,
+                StatusFilter: _statusFilter,
+                SearchTerm: _searchTerm);
+
+            var result = await Mediator.Send(query);
+
+            return new GridData<FundDto>
+            {
+                Items = result.Items,
+                TotalItems = result.TotalCount
+            };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnSearchChanged(string? searchTerm)
+    {
+        if (_dataGrid is not null)
+        {
+            await _dataGrid.ReloadServerData();
+        }
+    }
+
+    private async Task OnStatusFilterChanged(FundStatus? value)
+    {
+        _statusFilter = value;
+        if (_dataGrid is not null)
+        {
+            await _dataGrid.ReloadServerData();
+        }
+    }
+
+    private void OnRowClick(DataGridRowClickEventArgs<FundDto> args)
+    {
+        Navigation.NavigateTo($"/funds/{args.Item.Id}");
+    }
+
+    private async Task OpenCreateFundDialog()
+    {
+        var dialog = await DialogService.ShowAsync<CreateFundDialog>("Create Fund",
+            new DialogOptions
+            {
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true,
+                CloseOnEscapeKey = true
+            });
+
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled && _dataGrid is not null)
+        {
+            await _dataGrid.ReloadServerData();
+        }
+    }
+
+}

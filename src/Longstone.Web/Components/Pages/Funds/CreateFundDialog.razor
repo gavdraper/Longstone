@@ -1,0 +1,161 @@
+@using Longstone.Application.Funds.Commands.CreateFund
+@using Longstone.Domain.Funds
+@using Longstone.Web.Components.Pages.Funds
+@inject MediatR.IMediator Mediator
+@inject ISnackbar Snackbar
+@inject ILogger<CreateFundDialog> Logger
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudTextField @bind-Value="_name"
+                          Label="Fund Name"
+                          Required="true"
+                          RequiredError="Fund name is required"
+                          MaxLength="200"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_lei"
+                                  Label="LEI"
+                                  Required="true"
+                                  RequiredError="LEI is required"
+                                  MaxLength="20"
+                                  Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_isin"
+                                  Label="ISIN"
+                                  Required="true"
+                                  RequiredError="ISIN is required"
+                                  MaxLength="12"
+                                  Variant="Variant.Outlined" />
+                </MudItem>
+            </MudGrid>
+
+            <MudGrid Class="mt-3">
+                <MudItem xs="6">
+                    <MudSelect T="FundType" @bind-Value="_fundType"
+                               Label="Fund Type"
+                               Required="true"
+                               Variant="Variant.Outlined">
+                        @foreach (var ft in Enum.GetValues<FundType>())
+                        {
+                            <MudSelectItem T="FundType" Value="@ft">@FundDisplayHelpers.FormatFundType(ft)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_baseCurrency"
+                                  Label="Base Currency"
+                                  Required="true"
+                                  RequiredError="Base currency is required"
+                                  MaxLength="3"
+                                  Placeholder="GBP"
+                                  Variant="Variant.Outlined" />
+                </MudItem>
+            </MudGrid>
+
+            <MudTextField @bind-Value="_benchmarkIndex"
+                          Label="Benchmark Index"
+                          MaxLength="200"
+                          Variant="Variant.Outlined"
+                          Class="mt-3" />
+
+            <MudDatePicker @bind-Date="_inceptionDate"
+                           Label="Inception Date"
+                           Required="true"
+                           RequiredError="Inception date is required"
+                           Variant="Variant.Outlined"
+                           Class="mt-3" />
+
+            @if (_errorMessage is not null)
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-3">@_errorMessage</MudAlert>
+            }
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Submit"
+                   Disabled="@(!_isValid || _submitting)">
+            @if (_submitting)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Create Fund
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private MudForm? _form;
+    private bool _isValid;
+    private bool _submitting;
+    private string? _errorMessage;
+
+    private string _name = string.Empty;
+    private string _lei = string.Empty;
+    private string _isin = string.Empty;
+    private FundType _fundType = FundType.OEIC;
+    private string _baseCurrency = string.Empty;
+    private string? _benchmarkIndex;
+    private DateTime? _inceptionDate;
+
+    private async Task Submit()
+    {
+        if (_form is not null)
+        {
+            await _form.Validate();
+            if (!_isValid) return;
+        }
+
+        _submitting = true;
+        _errorMessage = null;
+
+        try
+        {
+            if (_inceptionDate is null)
+            {
+                _errorMessage = "Inception date is required.";
+                return;
+            }
+
+            var command = new CreateFundCommand(
+                Name: _name,
+                Lei: _lei,
+                Isin: _isin,
+                FundType: _fundType,
+                BaseCurrency: _baseCurrency,
+                BenchmarkIndex: _benchmarkIndex,
+                InceptionDate: _inceptionDate.Value);
+
+            var fundId = await Mediator.Send(command);
+
+            Snackbar.Add("Fund created successfully.", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(fundId));
+        }
+        catch (FluentValidation.ValidationException ex)
+        {
+            _errorMessage = string.Join("; ", ex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to create fund");
+            _errorMessage = "An unexpected error occurred. Please try again.";
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

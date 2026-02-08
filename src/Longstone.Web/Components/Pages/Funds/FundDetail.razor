@@ -1,0 +1,308 @@
+@page "/funds/{FundId:guid}"
+@using Longstone.Application.Funds.Commands.ChangeFundStatus
+@using Longstone.Application.Funds.Commands.UpdateFund
+@using Longstone.Application.Funds.Queries
+@using Longstone.Application.Funds.Queries.GetFundById
+@using Longstone.Domain.Auth
+@using Longstone.Domain.Funds
+@using Longstone.Web.Auth
+@using Longstone.Web.Components.Pages.Funds
+@inject MediatR.IMediator Mediator
+@inject CurrentUserPermissionService Permissions
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject ILogger<FundDetail> Logger
+
+<PageTitle>@(_fund?.Name ?? "Fund") - Longstone</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_loadError is not null)
+{
+    <MudAlert Severity="Severity.Error">@_loadError</MudAlert>
+    <MudButton Href="/funds" Variant="Variant.Outlined" Color="Color.Primary" Class="mt-4">Back to Funds</MudButton>
+}
+else if (_fund is null)
+{
+    <MudAlert Severity="Severity.Warning">Fund not found.</MudAlert>
+    <MudButton Href="/funds" Variant="Variant.Outlined" Color="Color.Primary" Class="mt-4">Back to Funds</MudButton>
+}
+else
+{
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="8">
+            <MudText Typo="Typo.h3" GutterBottom="true">@_fund.Name</MudText>
+            <MudStack Row="true" Spacing="2">
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">
+                    @FundDisplayHelpers.FormatFundType(_fund.FundType)
+                </MudChip>
+                <MudChip T="string" Size="Size.Small" Color="@FundDisplayHelpers.GetStatusColor(_fund.Status)">
+                    @_fund.Status
+                </MudChip>
+            </MudStack>
+        </MudItem>
+        <MudItem xs="12" sm="4" Class="d-flex align-center justify-end">
+            <MudButton Href="/funds"
+                       Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       Class="mr-2">
+                Back
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+        <MudTabPanel Text="Properties" Icon="@Icons.Material.Filled.Info">
+            <MudForm @ref="_form" @bind-IsValid="_formIsValid">
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_name"
+                                      Label="Fund Name"
+                                      Required="true"
+                                      MaxLength="200"
+                                      Variant="Variant.Outlined"
+                                      ReadOnly="@(!_canEdit)" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudSelect T="FundType" @bind-Value="_fundType"
+                                   Label="Fund Type"
+                                   Required="true"
+                                   Variant="Variant.Outlined"
+                                   ReadOnly="@(!_canEdit)">
+                            @foreach (var ft in Enum.GetValues<FundType>())
+                            {
+                                <MudSelectItem T="FundType" Value="@ft">@FundDisplayHelpers.FormatFundType(ft)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="_lei"
+                                      Label="LEI"
+                                      Required="true"
+                                      MaxLength="20"
+                                      Variant="Variant.Outlined"
+                                      ReadOnly="@(!_canEdit)" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="_isin"
+                                      Label="ISIN"
+                                      Required="true"
+                                      MaxLength="12"
+                                      Variant="Variant.Outlined"
+                                      ReadOnly="@(!_canEdit)" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="_baseCurrency"
+                                      Label="Base Currency"
+                                      Required="true"
+                                      MaxLength="3"
+                                      Variant="Variant.Outlined"
+                                      ReadOnly="@(!_canEdit)" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_benchmarkIndex"
+                                      Label="Benchmark Index"
+                                      MaxLength="200"
+                                      Variant="Variant.Outlined"
+                                      ReadOnly="@(!_canEdit)" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudDatePicker @bind-Date="_inceptionDate"
+                                       Label="Inception Date"
+                                       Required="true"
+                                       Variant="Variant.Outlined"
+                                       ReadOnly="@(!_canEdit)" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudSelect T="FundStatus" @bind-Value="_status"
+                                   Label="Status"
+                                   Variant="Variant.Outlined"
+                                   ReadOnly="@(!_canEdit)">
+                            @foreach (var s in Enum.GetValues<FundStatus>())
+                            {
+                                <MudSelectItem T="FundStatus" Value="@s">@s</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+
+                @if (_errorMessage is not null)
+                {
+                    <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
+                }
+
+                @if (_canEdit)
+                {
+                    <MudStack Row="true" Spacing="2" Class="mt-4">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   OnClick="SaveChanges"
+                                   Disabled="@(!_formIsValid || _saving)">
+                            @if (_saving)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            }
+                            Save Changes
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined"
+                                   OnClick="ResetForm">
+                            Reset
+                        </MudButton>
+                    </MudStack>
+                }
+            </MudForm>
+        </MudTabPanel>
+
+        <MudTabPanel Text="Mandate Rules" Icon="@Icons.Material.Filled.Rule">
+            <MandateRulesTab FundId="FundId" CanConfigure="_canConfigureCompliance" />
+        </MudTabPanel>
+
+        <MudTabPanel Text="Holdings" Icon="@Icons.Material.Filled.PieChart">
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-2">
+                Holdings will be available in the next slice.
+            </MudAlert>
+        </MudTabPanel>
+
+        <MudTabPanel Text="Cash" Icon="@Icons.Material.Filled.AccountBalance">
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-2">
+                Cash management will be available in the next slice.
+            </MudAlert>
+        </MudTabPanel>
+    </MudTabs>
+}
+
+@code {
+    [Parameter]
+    public Guid FundId { get; set; }
+
+    private FundDto? _fund;
+    private MudForm? _form;
+    private bool _loading = true;
+    private bool _saving;
+    private bool _formIsValid;
+    private bool _canEdit;
+    private bool _canConfigureCompliance;
+    private string? _errorMessage;
+    private string? _loadError;
+
+    private string _name = string.Empty;
+    private string _lei = string.Empty;
+    private string _isin = string.Empty;
+    private FundType _fundType;
+    private string _baseCurrency = string.Empty;
+    private string? _benchmarkIndex;
+    private DateTime? _inceptionDate;
+    private FundStatus _status;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _canEdit = await Permissions.HasPermissionAsync(Permission.ManageFunds);
+        _canConfigureCompliance = await Permissions.HasPermissionAsync(Permission.ConfigureCompliance);
+
+        await LoadFund();
+    }
+
+    private async Task LoadFund()
+    {
+        _loading = true;
+        _loadError = null;
+
+        try
+        {
+            _fund = await Mediator.Send(new GetFundByIdQuery(FundId));
+
+            if (_fund is not null)
+            {
+                PopulateForm(_fund);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load fund {FundId}", FundId);
+            _loadError = "Failed to load fund. Please try again.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void PopulateForm(FundDto fund)
+    {
+        _name = fund.Name;
+        _lei = fund.Lei;
+        _isin = fund.Isin;
+        _fundType = fund.FundType;
+        _baseCurrency = fund.BaseCurrency;
+        _benchmarkIndex = fund.BenchmarkIndex;
+        _inceptionDate = fund.InceptionDate;
+        _status = fund.Status;
+    }
+
+    private async Task SaveChanges()
+    {
+        if (_fund is null) return;
+
+        if (_form is not null)
+        {
+            await _form.Validate();
+            if (!_formIsValid) return;
+        }
+
+        if (_inceptionDate is null)
+        {
+            _errorMessage = "Inception date is required.";
+            return;
+        }
+
+        _saving = true;
+        _errorMessage = null;
+
+        try
+        {
+            await Mediator.Send(new UpdateFundCommand(
+                Id: _fund.Id,
+                Name: _name,
+                Lei: _lei,
+                Isin: _isin,
+                FundType: _fundType,
+                BaseCurrency: _baseCurrency,
+                BenchmarkIndex: _benchmarkIndex,
+                InceptionDate: _inceptionDate.Value));
+
+            if (_status != _fund.Status)
+            {
+                await Mediator.Send(new ChangeFundStatusCommand(_fund.Id, _status));
+            }
+
+            Snackbar.Add("Fund updated successfully.", Severity.Success);
+            await LoadFund();
+        }
+        catch (FluentValidation.ValidationException ex)
+        {
+            _errorMessage = string.Join("; ", ex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to update fund {FundId}", _fund.Id);
+            _errorMessage = "An unexpected error occurred. Please try again.";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private void ResetForm()
+    {
+        if (_fund is not null)
+        {
+            PopulateForm(_fund);
+        }
+
+        _errorMessage = null;
+    }
+
+}

@@ -1,7 +1,7 @@
 # Longstone Foundation — Slices 0 & 1
 
 **Created**: 2026-02-08
-**Status**: Phase 17 Complete (10.5 requires manual NAS deploy)
+**Status**: Phase 18 Complete (10.5 requires manual NAS deploy)
 **Estimated Complexity**: High
 
 ## Objective
@@ -395,27 +395,27 @@ Greenfield repository. Only `PRD.md` (full requirements) and `README.md` exist. 
 
 ### Phase 18: Blazor UI — Fund Pages (Slice 1)
 
-- [ ] 18.1 Implement Fund List page:
+- [x] 18.1 Implement Fund List page:
   - `src/Longstone.Web/Components/Pages/Funds/FundList.razor`
   - MudDataGrid with `ServerData` for server-side pagination/sorting/filtering
   - Columns: Name, Type (chip), Base Currency, Benchmark, Status (colored chip), Manager(s)
   - Search bar (debounced), status filter dropdown
-  - "New Fund" FAB button (gated by `Permission:CreateOrders` — only fund managers + admin)
+  - "New Fund" button (gated by `Permission:CreateOrders` — only fund managers + admin)
   - Row click → navigate to `/funds/{id}`
-- [ ] 18.2 Implement Fund Detail page:
+- [x] 18.2 Implement Fund Detail page:
   - `src/Longstone.Web/Components/Pages/Funds/FundDetail.razor`
   - MudTabs: Properties | Mandate Rules | Holdings (placeholder "Coming in next slice") | Cash (placeholder)
   - Properties tab: MudForm with fields matching Fund entity, MudSelect for FundType/Currency/Status, MudDatePicker for inception
-  - Save button → calls UpdateFund command
+  - Save button → calls UpdateFund + ChangeFundStatus commands
   - Permission-gated: read-only view for users without edit permission
-- [ ] 18.3 Implement Create Fund dialog:
+- [x] 18.3 Implement Create Fund dialog:
   - `src/Longstone.Web/Components/Pages/Funds/CreateFundDialog.razor`
   - MudDialog with form fields, validation, submit → CreateFund command
-- [ ] 18.4 Implement Mandate Rules tab:
-  - `src/Longstone.Web/Components/Pages/Funds/MandateRulesTab.razor`
-  - MudDataGrid: Rule Type, Parameters (formatted), Severity (chip), Active (switch), Effective From/To
-  - "Add Rule" button → MudDialog with RuleType dropdown, parameter fields (dynamic based on type), severity, dates
-  - Toggle active/inactive inline
+- [x] 18.4 Implement Mandate Rules tab:
+  - `src/Longstone.Web/Components/Pages/Funds/MandateRulesTab.razor` + `AddMandateRuleDialog.razor`
+  - MudDataGrid: Rule Type, Parameters, Severity (chip), Active (switch), Effective From/To
+  - "Add Rule" button → MudDialog with RuleType dropdown, parameters, severity, dates
+  - Toggle active/inactive inline via MudSwitch
   - Gated by `Permission:ConfigureCompliance`
 
 ### Phase 19: Blazor UI — Instrument Browser (Slice 1)

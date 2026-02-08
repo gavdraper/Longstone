@@ -82,10 +82,12 @@ public static class DependencyInjection
 
     private static async Task SeedDataAsync(LongstoneDbContext dbContext)
     {
+        IReadOnlyList<User>? seededUsers = null;
+
         if (!await dbContext.Users.AnyAsync())
         {
-            var users = UserSeedData.CreateSeededUsers(TimeProvider.System);
-            dbContext.Users.AddRange(users);
+            seededUsers = UserSeedData.CreateSeededUsers(TimeProvider.System);
+            dbContext.Users.AddRange(seededUsers);
 
             var rolePermissions = RolePermissionSeedData.CreateSeededRolePermissions();
             dbContext.RolePermissions.AddRange(rolePermissions);
@@ -95,6 +97,13 @@ public static class DependencyInjection
         {
             var instruments = InstrumentSeedData.CreateSeededInstruments(TimeProvider.System);
             dbContext.Instruments.AddRange(instruments);
+        }
+
+        if (!await dbContext.Funds.AnyAsync() && seededUsers is not null)
+        {
+            var (funds, mandateRules) = FundSeedData.CreateSeededFunds(seededUsers, TimeProvider.System);
+            dbContext.Funds.AddRange(funds);
+            dbContext.MandateRules.AddRange(mandateRules);
         }
 
         await dbContext.SaveChangesAsync();

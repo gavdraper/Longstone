@@ -10,6 +10,7 @@ public enum Permission
     ProcessCorporateActions,
     RunNavCalculation,
     ViewRiskDashboards,
+    ManageFunds,
     ManageUsers,
     ViewAuditLogs
 }

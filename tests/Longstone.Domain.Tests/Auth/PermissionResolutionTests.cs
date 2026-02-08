@@ -18,14 +18,15 @@ public class PermissionResolutionTests
         permissions.Should().Contain(Permission.ProcessCorporateActions);
         permissions.Should().Contain(Permission.RunNavCalculation);
         permissions.Should().Contain(Permission.ViewRiskDashboards);
+        permissions.Should().Contain(Permission.ManageFunds);
         permissions.Should().Contain(Permission.ManageUsers);
         permissions.Should().Contain(Permission.ViewAuditLogs);
     }
 
     [Fact]
-    public void Permission_HasExactlyTenValues()
+    public void Permission_HasExactlyElevenValues()
     {
-        Enum.GetValues<Permission>().Should().HaveCount(10);
+        Enum.GetValues<Permission>().Should().HaveCount(11);
     }
 
     [Fact]

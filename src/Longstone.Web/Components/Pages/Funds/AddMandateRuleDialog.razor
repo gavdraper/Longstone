@@ -1,0 +1,149 @@
+@using Longstone.Application.Compliance.Commands.AddMandateRule
+@using Longstone.Domain.Compliance
+@using Longstone.Web.Components.Pages.Funds
+@inject MediatR.IMediator Mediator
+@inject ISnackbar Snackbar
+@inject ILogger<AddMandateRuleDialog> Logger
+@inject TimeProvider TimeProvider
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudSelect T="MandateRuleType" @bind-Value="_ruleType"
+                       Label="Rule Type"
+                       Required="true"
+                       Variant="Variant.Outlined"
+                       Class="mb-3">
+                @foreach (var type in Enum.GetValues<MandateRuleType>())
+                {
+                    <MudSelectItem T="MandateRuleType" Value="@type">@FundDisplayHelpers.FormatRuleType(type)</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudTextField @bind-Value="_parameters"
+                          Label="Parameters (JSON)"
+                          Required="true"
+                          RequiredError="Parameters are required"
+                          Variant="Variant.Outlined"
+                          Lines="3"
+                          Placeholder="e.g. { &quot;maxWeight&quot;: 0.10 }"
+                          Class="mb-3" />
+
+            <MudSelect T="RuleSeverity" @bind-Value="_severity"
+                       Label="Severity"
+                       Required="true"
+                       Variant="Variant.Outlined"
+                       Class="mb-3">
+                <MudSelectItem T="RuleSeverity" Value="RuleSeverity.Hard">Hard (blocks trade)</MudSelectItem>
+                <MudSelectItem T="RuleSeverity" Value="RuleSeverity.Soft">Soft (warning only)</MudSelectItem>
+            </MudSelect>
+
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudDatePicker @bind-Date="_effectiveFrom"
+                                   Label="Effective From"
+                                   Required="true"
+                                   RequiredError="Effective from date is required"
+                                   Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudDatePicker @bind-Date="_effectiveTo"
+                                   Label="Effective To"
+                                   Variant="Variant.Outlined"
+                                   Clearable="true" />
+                </MudItem>
+            </MudGrid>
+
+            @if (_errorMessage is not null)
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-3">@_errorMessage</MudAlert>
+            }
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Submit"
+                   Disabled="@(!_isValid || _submitting)">
+            @if (_submitting)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Add Rule
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public Guid FundId { get; set; }
+
+    private MudForm? _form;
+    private bool _isValid;
+    private bool _submitting;
+    private string? _errorMessage;
+
+    private MandateRuleType _ruleType = MandateRuleType.MaxSingleStockWeight;
+    private string _parameters = string.Empty;
+    private RuleSeverity _severity = RuleSeverity.Hard;
+    private DateTime? _effectiveFrom;
+    private DateTime? _effectiveTo;
+
+    protected override void OnInitialized()
+    {
+        _effectiveFrom = TimeProvider.GetLocalNow().Date;
+    }
+
+    private async Task Submit()
+    {
+        if (_form is not null)
+        {
+            await _form.Validate();
+            if (!_isValid) return;
+        }
+
+        _submitting = true;
+        _errorMessage = null;
+
+        try
+        {
+            if (_effectiveFrom is null)
+            {
+                _errorMessage = "Effective from date is required.";
+                return;
+            }
+
+            var command = new AddMandateRuleCommand(
+                FundId: FundId,
+                RuleType: _ruleType,
+                Parameters: _parameters,
+                Severity: _severity,
+                EffectiveFrom: _effectiveFrom.Value,
+                EffectiveTo: _effectiveTo);
+
+            var ruleId = await Mediator.Send(command);
+
+            Snackbar.Add("Mandate rule added successfully.", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(ruleId));
+        }
+        catch (FluentValidation.ValidationException ex)
+        {
+            _errorMessage = string.Join("; ", ex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to add mandate rule to fund {FundId}", FundId);
+            _errorMessage = "An unexpected error occurred. Please try again.";
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
