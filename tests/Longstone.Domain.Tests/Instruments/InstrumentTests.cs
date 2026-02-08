@@ -341,4 +341,59 @@ public class InstrumentTests
 
         act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("timeProvider");
     }
+
+    // FixedIncomeDetails tests
+
+    [Fact]
+    public void Create_FixedIncomeDetails_IsNullByDefault()
+    {
+        var instrument = CreateValidInstrument(assetClass: AssetClass.FixedIncome);
+
+        instrument.FixedIncomeDetails.Should().BeNull();
+    }
+
+    [Fact]
+    public void SetFixedIncomeDetails_OnFixedIncomeInstrument_SetsDetailsAndUpdatesTimestamp()
+    {
+        var instrument = CreateValidInstrument(assetClass: AssetClass.FixedIncome);
+        var details = FixedIncomeDetails.Create(0.05m, new DateTime(2035, 1, 15), CouponFrequency.SemiAnnual, DayCountConvention.ActualActualIsda, new DateTime(2025, 1, 15), 100m);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        instrument.SetFixedIncomeDetails(details, _timeProvider);
+
+        instrument.FixedIncomeDetails.Should().Be(details);
+        instrument.UpdatedAt.Should().Be(_timeProvider.GetUtcNow().UtcDateTime);
+    }
+
+    [Fact]
+    public void SetFixedIncomeDetails_OnEquityInstrument_Throws()
+    {
+        var instrument = CreateValidInstrument(assetClass: AssetClass.Equity);
+        var details = FixedIncomeDetails.Create(0.05m, new DateTime(2035, 1, 15), CouponFrequency.SemiAnnual, DayCountConvention.ActualActualIsda, new DateTime(2025, 1, 15), 100m);
+
+        var act = () => instrument.SetFixedIncomeDetails(details, _timeProvider);
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void SetFixedIncomeDetails_WithNullDetails_Throws()
+    {
+        var instrument = CreateValidInstrument(assetClass: AssetClass.FixedIncome);
+
+        var act = () => instrument.SetFixedIncomeDetails(null!, _timeProvider);
+
+        act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("details");
+    }
+
+    [Fact]
+    public void SetFixedIncomeDetails_WithNullTimeProvider_Throws()
+    {
+        var instrument = CreateValidInstrument(assetClass: AssetClass.FixedIncome);
+        var details = FixedIncomeDetails.Create(0.05m, new DateTime(2035, 1, 15), CouponFrequency.SemiAnnual, DayCountConvention.ActualActualIsda, new DateTime(2025, 1, 15), 100m);
+
+        var act = () => instrument.SetFixedIncomeDetails(details, null!);
+
+        act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("timeProvider");
+    }
 }

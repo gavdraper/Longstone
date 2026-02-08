@@ -37,7 +37,7 @@ public static class DependencyInjection
 
         services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.Equity);
         services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.ETF);
-        services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.FixedIncome);
+        services.AddKeyedScoped<IInstrumentValuationStrategy, FixedIncomeValuationStrategy>(AssetClass.FixedIncome);
         services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.Fund);
         services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.Cash);
         services.AddKeyedScoped<IInstrumentValuationStrategy, DefaultValuationStrategy>(AssetClass.Alternative);

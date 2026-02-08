@@ -16,6 +16,7 @@ public class Instrument : IAuditable
     public AssetClass AssetClass { get; private set; }
     public decimal MarketCapitalisation { get; private set; }
     public InstrumentStatus Status { get; private set; }
+    public FixedIncomeDetails? FixedIncomeDetails { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
@@ -100,6 +101,20 @@ public class Instrument : IAuditable
         }
 
         Status = InstrumentStatus.Active;
+        UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
+    }
+
+    public void SetFixedIncomeDetails(FixedIncomeDetails details, TimeProvider timeProvider)
+    {
+        ArgumentNullException.ThrowIfNull(details);
+        ArgumentNullException.ThrowIfNull(timeProvider);
+
+        if (AssetClass != AssetClass.FixedIncome)
+        {
+            throw new InvalidOperationException($"Fixed income details can only be set on {AssetClass.FixedIncome} instruments.");
+        }
+
+        FixedIncomeDetails = details;
         UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
     }
 }
