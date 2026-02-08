@@ -1,7 +1,7 @@
 # Longstone Foundation — Slices 0 & 1
 
 **Created**: 2026-02-08
-**Status**: Phase 11 Complete (10.5 requires manual NAS deploy)
+**Status**: Phase 12 Complete (10.5 requires manual NAS deploy)
 **Estimated Complexity**: High
 
 ## Objective
@@ -275,25 +275,25 @@ Greenfield repository. Only `PRD.md` (full requirements) and `README.md` exist. 
 
 ### Phase 12: Fund + Mandate Domain Model (Slice 1)
 
-- [ ] 12.1 **Write tests**: `tests/Longstone.Domain.Tests/Funds/FundTests.cs`:
+- [x] 12.1 **Write tests**: `tests/Longstone.Domain.Tests/Funds/FundTests.cs`:
   - Fund creation with valid properties
   - Fund status transitions (Active → Suspended → Closed)
   - Fund manager assignment
   - Cannot create fund without base currency
-- [ ] 12.2 **Write tests**: `tests/Longstone.Domain.Tests/Compliance/MandateRuleTests.cs`:
+- [x] 12.2 **Write tests**: `tests/Longstone.Domain.Tests/Compliance/MandateRuleTests.cs`:
   - Rule creation with valid parameters
   - Rule activation/deactivation with effective dates
   - Hard vs Soft severity
-- [ ] 12.3 Implement fund domain:
+- [x] 12.3 Implement fund domain:
   - `src/Longstone.Domain/Funds/Fund.cs` — Id (Guid), Name, Lei, Isin, FundType, BaseCurrency, BenchmarkIndex, InceptionDate, Status, CreatedAt, UpdatedAt. Implements `IAuditable`. Navigation: AssignedManagers (collection of User), MandateRules.
   - `src/Longstone.Domain/Funds/FundType.cs` — enum: OEIC, UnitTrust, InvestmentTrust, SegregatedMandate
   - `src/Longstone.Domain/Funds/FundStatus.cs` — enum: Active, Suspended, Closed
   - `src/Longstone.Domain/Funds/FundManager.cs` — join entity: FundId, UserId
-- [ ] 12.4 Implement mandate domain:
+- [x] 12.4 Implement mandate domain:
   - `src/Longstone.Domain/Compliance/MandateRule.cs` — Id (Guid), FundId, RuleType, Parameters (JSON string), Severity, IsActive, EffectiveFrom, EffectiveTo, CreatedAt, UpdatedAt. Implements `IAuditable`.
   - `src/Longstone.Domain/Compliance/MandateRuleType.cs` — enum: MaxSingleStockWeight, MaxSectorExposure, MaxCountryExposure, MinCashHolding, BannedInstrument, AssetClassLimit, MarketCapFloor, MaxHoldings, CurrencyExposureLimit, TrackingErrorLimit
   - `src/Longstone.Domain/Compliance/RuleSeverity.cs` — enum: Hard, Soft
-- [ ] 12.5 Verify tests pass
+- [x] 12.5 Verify tests pass — 333 total (248 domain + 15 application + 42 infrastructure + 28 integration), all green, 0 warnings
 
 ### Phase 13: EF Core Configuration + Migration (Slice 1)
 
